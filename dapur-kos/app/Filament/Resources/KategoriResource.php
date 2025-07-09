@@ -1,0 +1,86 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\KategoriResource\Pages;
+use App\Filament\Resources\KategoriResource\RelationManagers;
+use App\Models\Kategori;
+use Filament\Forms;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+
+class KategoriResource extends Resource
+{
+    protected static ?string $model = Kategori::class;
+
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                TextInput::make('judul')->required(),
+                Textarea::make('deskripsi')->nullable(),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('judul')
+                    ->searchable(),
+                TextColumn::make('deskripsi')
+                    ->limit(50) // membatasi panjang teks jika terlalu panjang
+                    ->wrap(),   // agar teks panjang bisa turun ke baris berikutnya
+                TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('updated_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+
+            ->filters([
+                SelectFilter::make('judul')
+                    ->relationship('kategori', 'judul')
+                    ->multiple()
+            ])
+
+            ->actions([
+                Tables\Actions\EditAction::make(),
+            ])
+
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListKategoris::route('/'),
+            'create' => Pages\CreateKategori::route('/create'),
+            'edit' => Pages\EditKategori::route('/{record}/edit'),
+        ];
+    }
+}
